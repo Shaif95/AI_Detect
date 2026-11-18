@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proving What Is Real: checker API</title>
+<style>
+  body { font-family: Georgia, serif; max-width: 640px; margin: 60px auto; padding: 0 20px; color: #1a1a1a; line-height: 1.6; }
+  h1 { font-size: 26px; }
+  code { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; }
+  a { color: #0b5394; }
+</style>
+</head>
+<body>
+<h1>Proving What Is Real</h1>
+<p>This is the checker API behind the project's Firefox add-on. It answers one question: was this text likely written by AI?</p>
+<p>Health check: <code>GET /api/check</code>. Run a check: <code>POST /api/check</code> with a JSON body of <code>{"text": "..."}</code>.</p>
+<p>The detection model is <code>Hello-SimpleAI/chatgpt-detector-roberta</code>, served through Hugging Face. Text sent here is processed for the check and is not stored or used to train models.</p>
+<p>Project site: <a href="https://www.deepfakedetect.fyi/">deepfakedetect.fyi</a> &middot; Code: <a href="https://github.com/Shaif95/AI_Detect">github.com/Shaif95/AI_Detect</a></p>
+</body>
+</html>
