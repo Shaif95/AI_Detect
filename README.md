@@ -7,7 +7,7 @@ Open dataset: https://zenodo.org/records/20671008
 
 ## What is in this repo
 
-- `extension/` — the Firefox add-on (Manifest V2). Select text on any page, right-click, and choose "Check if this text is AI-generated". The verdict appears in a small panel on the page with an AI likelihood score and a plain-language explanation. A toolbar popup also lets you paste text directly. Text only for now; image and audio checks are on the roadmap described in the proposal.
+- `add-on/` — the Firefox add-on (Manifest V2). Select text on any page, right-click, and choose "Check if this text is AI-generated". The verdict appears in a small panel on the page with an AI likelihood score and a plain-language explanation. A toolbar popup also lets you paste text directly. Text only for now; image and audio checks are on the roadmap described in the proposal.
 - `api/check.js` — a small Vercel serverless function that proxies checks to a Hugging Face detection model so the API token stays server-side. Text sent to the API is processed for the check and is not stored or used to train models.
 - `index.html` — a plain landing page for the API deployment.
 
@@ -28,14 +28,14 @@ The add-on allows 5 free checks per day per browser (counted locally in extensio
 ## Load the add-on in Firefox
 
 1. Open `about:debugging#/runtime/this-firefox`.
-2. Click "Load Temporary Add-on" and pick `extension/manifest.json`.
+2. Click "Load Temporary Add-on" and pick `add-on/manifest.json`.
 3. Select text on any page, right-click, and choose "Check if this text is AI-generated".
 
-The add-on points at the production API in `extension/background.js` (`API_URL`). Change that constant to point at your own deployment.
+The add-on points at the production API in `add-on/background.js` (`API_URL`). Change that constant to point at your own deployment.
 
 ## Publish to Firefox Add-ons (AMO)
 
-1. Zip the contents of `extension/` (with `manifest.json` at the zip root).
+1. Zip the contents of `add-on/` (with `manifest.json` at the zip root).
 2. Submit at https://addons.mozilla.org/developers/ with the listing text: name "AI Text Check: Proving What Is Real", summary from `manifest.json`, and a privacy note stating that selected text is sent to the project's checker API for analysis and is not stored.
 
 ## Team
