@@ -1,31 +1,61 @@
 // Proving What Is Real: AI text check API.
 //
-// A small proxy in front of a Hugging Face text-classification model so the
-// HF token stays server-side (set as the HF_TOKEN environment variable on
-// Vercel). The Firefox add-on posts selected text here and gets back a
-// verdict, an AI probability score, and the model name.
+// A small proxy in front of the team's self-hosted Hugging Face Space
+// (chowdhuryshaif/deepfake-detector-inference, a private ZeroGPU Gradio
+// Space) so the HF token stays server-side (set as the HF_TOKEN
+// environment variable on Vercel). The Firefox add-on posts selected
+// text here and gets back a verdict, an AI probability score, and the
+// model name.
 //
 // Model: Hello-SimpleAI/chatgpt-detector-roberta, a RoBERTa classifier
-// trained on the HC3 dataset (human answers vs ChatGPT answers). It returns
-// two labels, "Human" and "ChatGPT".
+// trained on the HC3 dataset of human answers and ChatGPT answers. It
+// returns two labels, "Human" and "ChatGPT".
+//
+// The Space sleeps when idle. The first call wakes it and can take a
+// while; if the wake outlasts this function, the caller gets a
+// model_unavailable response and the next call succeeds.
 
 const MODEL = "Hello-SimpleAI/chatgpt-detector-roberta";
-const HF_URL = "https://router.huggingface.co/hf-inference/models/" + MODEL;
+const SPACE_URL = "https://chowdhuryshaif-deepfake-detector-inference.hf.space";
 const MAX_CHARS = 4000;
 const MIN_CHARS = 40;
 
-async function callModel(text, token) {
-  return fetch(HF_URL, {
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function callSpace(text, token) {
+  const post = await fetch(SPACE_URL + "/gradio_api/call/predict_text", {
     method: "POST",
     headers: {
       Authorization: "Bearer " + token,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      inputs: text,
-      options: { wait_for_model: true },
-    }),
+    body: JSON.stringify({ data: [text] }),
+    signal: AbortSignal.timeout(20000),
   });
+  if (!post.ok) throw new Error("space_post_" + post.status);
+  const posted = await post.json();
+  const eventId = posted && posted.event_id;
+  if (!eventId) throw new Error("space_no_event_id");
+
+  const deadline = Date.now() + 35000;
+  while (Date.now() < deadline) {
+    const res = await fetch(SPACE_URL + "/gradio_api/call/predict_text/" + eventId, {
+      headers: { Authorization: "Bearer " + token },
+      signal: AbortSignal.timeout(15000),
+    });
+    const body = await res.text();
+    if (body.indexOf("event: complete") !== -1) {
+      const line = body.split("\n").find((l) => l.indexOf("data:") === 0);
+      if (!line) throw new Error("space_no_data");
+      const data = JSON.parse(line.slice(5).trim());
+      const rows = Array.isArray(data) ? data[0] : null;
+      if (!Array.isArray(rows)) throw new Error("space_bad_rows");
+      return rows;
+    }
+    if (body.indexOf("event: error") !== -1) throw new Error("space_error");
+    await sleep(3000);
+  }
+  throw new Error("space_timeout");
 }
 
 module.exports = async (req, res) => {
@@ -62,22 +92,13 @@ module.exports = async (req, res) => {
   const clipped = text.slice(0, MAX_CHARS);
 
   try {
-    let hf = await callModel(clipped, token);
-    if (hf.status === 503) {
-      // Model is warming up. Wait once and retry.
-      await new Promise((resolve) => setTimeout(resolve, 2500));
-      hf = await callModel(clipped, token);
-    }
-    if (!hf.ok) {
-      const detail = await hf.text();
-      console.error("HF error", hf.status, detail.slice(0, 300));
-      return res.status(502).json({ error: "model_unavailable", message: "The detection model is unavailable right now. Please try again in a moment." });
-    }
-
-    const data = await hf.json();
-    const rows = Array.isArray(data) && Array.isArray(data[0]) ? data[0] : data;
-    if (!Array.isArray(rows)) {
-      return res.status(502).json({ error: "unexpected_model_response" });
+    let rows;
+    try {
+      rows = await callSpace(clipped, token);
+    } catch (firstErr) {
+      // The Space may have been asleep; the first attempt wakes it.
+      await sleep(3000);
+      rows = await callSpace(clipped, token);
     }
 
     let ai = null;

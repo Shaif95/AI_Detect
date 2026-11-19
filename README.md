@@ -13,7 +13,7 @@ Open dataset: https://zenodo.org/records/20671008
 
 ## Model
 
-`Hello-SimpleAI/chatgpt-detector-roberta`, a RoBERTa classifier trained on the HC3 dataset of human answers and ChatGPT answers, served through the Hugging Face Inference API. The add-on reports an AI likelihood score and one of three verdicts: likely AI-generated, likely human-written, or uncertain.
+`Hello-SimpleAI/chatgpt-detector-roberta`, a RoBERTa classifier trained on the HC3 dataset of human answers and ChatGPT answers, served from the team private Hugging Face Space (ZeroGPU Gradio), which this API calls with the owner token. The add-on reports an AI likelihood score and one of three verdicts: likely AI-generated, likely human-written, or uncertain.
 
 ## Guardrail
 
