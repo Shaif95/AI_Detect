@@ -4,7 +4,7 @@
 // guardrail (5 checks per day), calls the checker API, and tells the
 // content script to show the verdict panel. Also answers the popup.
 
-const API_URL = "https://ai-detect-api.vercel.app/api/check";
+const API_URL = "https://ai-detect-api-fawn.vercel.app/api/check";
 const DAILY_LIMIT = 5;
 const MENU_ID = "pwr-check-selection";
 

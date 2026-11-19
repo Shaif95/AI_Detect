@@ -49,7 +49,7 @@
       ".foot a{color:#0b5394;}" +
       "</style>" +
       '<div class="card" role="dialog" aria-label="AI text check result">' +
-      '<div class="row"><span class="brand">AI Text Check</span>' +
+      '<div class="row"><span class="brand">DeepfakeDetect</span>' +
       '<button class="close" title="Close" aria-label="Close">&times;</button></div>' +
       '<div class="content"></div>' +
       "</div>";
